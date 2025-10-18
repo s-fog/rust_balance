@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: ./docker/app
+      dockerfile: Dockerfile
+    container_name: balance-rust-app
+    working_dir: /usr/src/myapp
+    volumes:
+      - .:/usr/src/myapp
+    command: sleep infinity
+
+  redis:
+    image: redis:8.2.2-alpine3.22
