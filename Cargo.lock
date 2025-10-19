@@ -17,6 +17,7 @@ dependencies = [
  "env",
  "once_cell",
  "redis",
+ "serde",
 ]
 
 [[package]]
