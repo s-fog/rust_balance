@@ -1,16 +1,17 @@
 use redis::{Client, Connection, RedisResult};
 use dotenv::dotenv;
 use once_cell::sync::Lazy;
+use crate::env_load::env_load::get_env_var;
+
 
 pub struct RedisClient;
 
 pub trait RedisConnection {
     fn get_connection() -> RedisResult<Connection> {
         Lazy::new(|| {
-            dotenv().ok();
+            let connection_url = get_env_var(&String::from("REDIS_CONNECTION"));
 
-            let redis_connection_url = env::var("REDIS_CONNECTION").unwrap();
-            Client::open(redis_connection_url).unwrap()
+            Client::open(connection_url).unwrap()
         }).get_connection()
     }
 }
