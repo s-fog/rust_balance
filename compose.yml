@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
     container_name: balance-rust-app
     working_dir: /usr/src/myapp
+    ports:
+      - "3000:3000"
     volumes:
       - .:/usr/src/myapp
     command: sleep infinity
@@ -14,8 +16,13 @@ services:
 
   mysql:
     image: mysql:8.0
+    ports:
+      - "3620:3306"
+    volumes:
+      - ./docker/mysql/general-logs:/var/log/mysql
+      - ./docker/mysql/conf.d:/etc/mysql/conf.d
     environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: yes
-      MYSQL_DATABASE: ${DATABASE_NAME}
-      MYSQL_USER: ${DATABASE_USER}
-      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: yes
+      MYSQL_DATABASE: database
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password

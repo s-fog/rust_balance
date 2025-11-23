@@ -1,13 +1,31 @@
+//#![cfg_attr(feature = "local", allow(dead_code, unused))]
 #![allow(dead_code, unused)]
-
-use crate::database_connection::database_connection::Mysql;
-
+mod memory_client;
 mod env_load;
-mod database_connection;
-mod cache;
+mod global;
+mod state;
 mod structs;
-mod redis_client;
+mod entities;
+mod repositories;
+mod services;
+mod handlers;
 
-fn main() {
-    Mysql::get_pool()
+use std::sync::Arc;
+use axum::{ Router, routing::{ post } };
+use crate::handlers::bet_only_regular::bet_only_regular;
+use crate::state::AppState;
+
+#[tokio::main]
+async fn main() {
+    let app_state = Arc::new(AppState::make_real());
+
+    let app = Router::new()
+        .route(
+            "/bet/only-regular",
+            post(bet_only_regular)
+        )
+        .with_state(app_state);
+
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
