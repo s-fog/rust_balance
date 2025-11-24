@@ -12,11 +12,13 @@ mod handlers;
 
 use std::sync::Arc;
 use axum::{ Router, routing::{ post } };
+use crate::global::get_sql_pool;
 use crate::handlers::bet_only_regular::bet_only_regular;
 use crate::state::AppState;
 
 #[tokio::main]
 async fn main() {
+    get_sql_pool().await;
     let app_state = Arc::new(AppState::make_real());
 
     let app = Router::new()

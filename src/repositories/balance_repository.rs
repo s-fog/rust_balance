@@ -1,8 +1,12 @@
-use sqlx::{AnyPool, MySqlPool};
+use std::fmt::Debug;
+use std::sync::Arc;
+use sqlx::{AnyPool, MySqlPool, Pool};
 use crate::entities::balance::{Balance, BalanceType};
 use crate::global::{get_redis_client, get_sql_pool};
+use async_trait::async_trait;
 
-pub trait BalanceRepositoryTrait {
+#[async_trait]
+pub trait BalanceRepositoryTrait: Send + Sync + Debug {
     async fn get_balance(
         &self,
         balance_type: BalanceType,
@@ -10,9 +14,13 @@ pub trait BalanceRepositoryTrait {
     ) -> Balance;
 }
 
-pub struct BalanceRepository;
+#[derive(Debug)]
+pub struct BalanceRepository<'mys> {
+    pub sql_pool: &'mys MySqlPool
+}
 
-impl BalanceRepositoryTrait for BalanceRepository {
+#[async_trait]
+impl BalanceRepositoryTrait for BalanceRepository<'_> {
     async fn get_balance(
         &self,
         balance_type: BalanceType,
@@ -25,7 +33,7 @@ impl BalanceRepositoryTrait for BalanceRepository {
                 )
                     .bind(&balance_type)
                     .bind(&user_bonus_id)
-                    .fetch_one(get_sql_pool().await)
+                    .fetch_one(self.sql_pool)
                     .await
             }
             None => {
@@ -33,12 +41,10 @@ impl BalanceRepositoryTrait for BalanceRepository {
                         "SELECT * FROM balances WHERE type = ? AND user_bonus_id is null"
                     )
                     .bind(&balance_type)
-                    .fetch_one(get_sql_pool().await)
+                    .fetch_one(self.sql_pool)
                     .await
             }
         };
-
-        dbg!(&balance_result);
 
         match balance_result {
             Ok(balance) => {
@@ -50,12 +56,11 @@ impl BalanceRepositoryTrait for BalanceRepository {
                     )
                     .bind(&balance_type)
                     .bind(&user_bonus_id)
-                    .execute(get_sql_pool().await)
+                    .execute(self.sql_pool)
                     .await
                     .unwrap();
 
                 let id: u64 = balance_insert_result.last_insert_id();
-                dbg!(&id);
 
                 Balance::new(
                     id,
@@ -69,31 +74,63 @@ impl BalanceRepositoryTrait for BalanceRepository {
 
 #[cfg(test)]
 mod tests {
+    use sqlx::mysql::MySqlPoolOptions;
+    use crate::env_load::env_load::get_env_var;
     use super::*;
 
-    #[tokio::test(flavor = "current_thread")]
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     async fn get_balance_balance_not_exists() {
         let balance_type = BalanceType::Regular;
         let user_bonus_id = None;
+        let sql_pool = MySqlPoolOptions::new()
+            .min_connections(1)
+            .max_connections(1)
+            .connect(&get_env_var(&String::from("DATABASE_URL")))
+            .await
+            .unwrap();
 
-        let balance_repository = BalanceRepository;
+        // Prepare database
+        sqlx::query("DELETE FROM balances WHERE type = ? and user_bonus_id IS NULL")
+            .bind(&balance_type)
+            .execute(&sql_pool)
+            .await;
+        // Prepare database END
+
+        let balance_repository = BalanceRepository {
+            sql_pool: &sql_pool
+        };
         let balance = balance_repository.get_balance(balance_type, user_bonus_id).await;
 
         assert_eq!(true, balance.id > 0);
     }
 
-    #[tokio::test(flavor = "current_thread")]
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     async fn get_balance_balance_exist() {
         let balance_type = BalanceType::Bonus;
         let user_bonus_id = Some(5);
+        let sql_pool = MySqlPoolOptions::new()
+            .min_connections(1)
+            .max_connections(1)
+            .connect(&get_env_var(&String::from("DATABASE_URL")))
+            .await
+            .unwrap();
 
+        // Prepare database
+        sqlx::query("DELETE FROM balances WHERE type = ? and user_bonus_id = ?")
+            .bind(&balance_type)
+            .bind(&user_bonus_id)
+            .execute(&sql_pool)
+            .await;
         sqlx::query("INSERT INTO balances (type, user_bonus_id) VALUES (?, ?)")
             .bind(&balance_type)
             .bind(&user_bonus_id)
-            .execute(get_sql_pool().await)
+            .execute(&sql_pool)
             .await;
+        // Prepare database END
 
-        let balance_repository = BalanceRepository;
+        let balance_repository = BalanceRepository {
+            sql_pool: &sql_pool
+        };
         let balance = balance_repository.get_balance(balance_type, user_bonus_id).await;
 
         assert_eq!(true, balance.id > 0);

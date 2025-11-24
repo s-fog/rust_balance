@@ -23,6 +23,11 @@ pub async fn get_sql_pool() -> &'static MySqlPool
     }).await
 }
 
+pub fn get_sql_pool_sync() -> &'static MySqlPool
+{
+    SQL_POOL.get().unwrap()
+}
+
 pub fn get_redis_client() -> &'static Client
 {
     REDIS_CLIENT.get_or_init(|| {
