@@ -1,1 +1,0 @@
-cargo watch -q -c -x "run --features local"

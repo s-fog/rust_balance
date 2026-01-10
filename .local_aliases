@@ -1,3 +1,0 @@
-cargo() {
-    docker exec -it balance-rust-app cargo "$@"
-}

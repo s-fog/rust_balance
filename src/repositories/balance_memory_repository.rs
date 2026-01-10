@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 use std::sync::Arc;
 use crate::memory_client::MemoryClient;
-use crate::structs::money::Currency;
-use crate::structs::money::Money;
+use crate::money::money::Currency;
+use crate::money::money::Money;
 
 pub trait BalanceMemoryRepositoryTrait: Send + Sync + Debug {
     fn increment_balance_amount(
@@ -26,7 +26,7 @@ impl BalanceMemoryRepository {
         currency: &Currency,
     ) -> String
     {
-        self.memory_client.get_cache_key(user_id, balance_id, &currency.id)
+        self.memory_client.get_cache_key(user_id, balance_id, &currency.get_id())
     }
 }
 
@@ -37,7 +37,7 @@ impl BalanceMemoryRepositoryTrait for BalanceMemoryRepository {
         balance_id: &u64,
         money: &Money,
     ) -> f64 {
-        let cache_key = self.get_cache_key(user_id, balance_id, &money.currency);
+        let cache_key = self.get_cache_key(user_id, balance_id, &money.get_currency());
 
         self.memory_client.incr_by_float(cache_key, &money.get_amount())
     }

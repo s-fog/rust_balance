@@ -9,6 +9,7 @@ services:
       - "3000:3000"
     volumes:
       - .:/usr/src/myapp
+      - cargo-registry:/usr/local/cargo/registry
     command: sleep infinity
 
   redis:
@@ -26,3 +27,6 @@ services:
       MYSQL_DATABASE: database
       MYSQL_USER: user
       MYSQL_PASSWORD: password
+
+volumes:
+  cargo-registry:

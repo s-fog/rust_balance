@@ -1,2 +1,1 @@
-pub mod traits;
-pub mod bet_only_regular;
+pub mod bet_only_regular_handler;

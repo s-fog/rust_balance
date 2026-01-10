@@ -3,14 +3,14 @@
   <component name="RemoteTargetsManager">
     <option name="projectDefaultTargetUuid" value="8163af5d-2f81-4bec-9a80-2b760b017c84" />
     <targets>
-      <target name="app" type="docker-compose" uuid="8163af5d-2f81-4bec-9a80-2b760b017c84">
+      <target name="app3" type="docker-compose" uuid="b87acb93-2a6f-4a47-a68a-4f0c9e67f7ac">
         <config>
           <option name="targetPlatform">
             <TargetPlatform />
           </option>
           <option name="configurationFiles">
             <list>
-              <option value="\\wsl.localhost\Ubuntu\home\fog\rust\balance\compose.yml" />
+              <option value="$PROJECT_DIR$/compose.yml" />
             </list>
           </option>
           <option name="serviceName" value="app" />
@@ -18,30 +18,9 @@
         <ContributedStateBase type="RsLanguageRuntime">
           <config>
             <option name="cargoPath" value="/usr/local/cargo/bin/cargo" />
-            <option name="cargoVersion" value="1.90.0 (840b83a10 2025-07-30)" />
+            <option name="cargoVersion" value="1.92.0 (344c4567c 2025-10-21)" />
             <option name="rustcPath" value="/usr/local/cargo/bin/rustc" />
-            <option name="rustcVersion" value="1.90.0 (1159e78c4 2025-09-14)" />
-          </config>
-        </ContributedStateBase>
-      </target>
-      <target name="app2" type="docker-compose" uuid="2828c589-bbd2-459c-9343-0ba3b956a086">
-        <config>
-          <option name="targetPlatform">
-            <TargetPlatform />
-          </option>
-          <option name="configurationFiles">
-            <list>
-              <option value="\\wsl.localhost\Ubuntu\home\fog\rust\balance\compose.yml" />
-            </list>
-          </option>
-          <option name="serviceName" value="app" />
-        </config>
-        <ContributedStateBase type="RsLanguageRuntime">
-          <config>
-            <option name="cargoPath" value="/usr/local/cargo/bin/cargo" />
-            <option name="cargoVersion" value="1.90.0 (840b83a10 2025-07-30)" />
-            <option name="rustcPath" value="/usr/local/cargo/bin/rustc" />
-            <option name="rustcVersion" value="1.90.0 (1159e78c4 2025-09-14)" />
+            <option name="rustcVersion" value="1.92.0 (ded5c06cf 2025-12-08)" />
           </config>
         </ContributedStateBase>
       </target>

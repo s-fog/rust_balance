@@ -1,5 +1,5 @@
 use serde::{ Deserialize, Serialize };
-use crate::structs::money::Money;
+use crate::money::money::Money;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct BalanceAndAmount {
