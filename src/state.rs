@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use crate::global::{get_sql_pool, get_sql_pool_sync};
 use crate::memory_client::redis_client::RedisClient;
 use crate::repositories::balance_memory_repository::{BalanceMemoryRepository, BalanceMemoryRepositoryTrait};
 

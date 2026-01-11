@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 use std::sync::Arc;
-use sqlx::{AnyPool, MySqlPool, Pool};
+use sqlx::MySqlPool;
 use crate::entities::balance::{Balance, BalanceType};
-use crate::global::{get_redis_client, get_sql_pool, get_sql_pool_sync};
+use crate::global::get_sql_pool_sync;
 
 pub trait BalanceRepositoryTrait {
     async fn get_balance(

@@ -12,13 +12,19 @@ mod balance_managers;
 mod handlers;
 
 use std::sync::Arc;
-use axum::{ Router, routing::{ post } };
-use crate::global::get_sql_pool;
+use axum::{ Router, routing::post };
+use crate::global::init_sql_pool;
 use crate::handlers::bet_only_regular_handler::bet_only_regular_handler;
 use crate::balance_managers::bet_balance_manager::BetBalanceManager;
 use crate::state::AppState;
-use clap::{ Parser, Subcommand };
-use crate::money::money::{Currency, Money};
+use clap::{
+    Parser,
+    Subcommand,
+};
+use crate::money::money::{
+    Currency,
+    Money,
+};
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -41,7 +47,7 @@ enum Command {
 
 #[tokio::main]
 async fn main() {
-    get_sql_pool().await;
+    init_sql_pool().await;
     let app_state = Arc::new(AppState::make_real());
 
     let cli = Cli::parse();

@@ -7,7 +7,7 @@ use crate::env_load::env_load::get_env_var;
 static SQL_POOL: TokioOnceCell<MySqlPool> = TokioOnceCell::const_new();
 static REDIS_CLIENT: OnceCell<Client> = OnceCell::new();
 
-pub async fn get_sql_pool() -> &'static MySqlPool
+pub async fn init_sql_pool() -> &'static MySqlPool
 {
     SQL_POOL.get_or_init(|| async {
         let url: String = get_env_var(&String::from("DATABASE_URL"));
