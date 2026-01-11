@@ -1,12 +1,12 @@
 use redis::{Commands, Connection};
-use crate::redis_client::redis_client::{RedisClient, RedisConnection};
+use crate::global::get_redis_client;
 
-trait CacheTrait {
+pub trait CacheTrait {
     fn get_value(&mut self, key: String) -> Option<String>;
-    fn set_value(&mut self, key: String, value: SetValue) -> ();
+    fn set_value(&mut self, key: String, value: SetValue);
 }
 
-enum SetValue {
+pub enum SetValue {
     String(String),
     Float(f64),
     Integer(i32),
@@ -17,7 +17,13 @@ pub struct CacheRedis {
 }
 
 impl CacheRedis {
-    pub fn new(connection: Connection) -> Self {
+    pub fn new() -> Self {
+        Self {
+            connection: get_redis_client().get_connection().unwrap()
+        }
+    }
+
+    pub fn new_with_connection(connection: Connection) -> Self {
         Self {
             connection
         }
@@ -30,7 +36,7 @@ impl CacheTrait for CacheRedis {
         self.connection.get(key).ok()
     }
 
-    fn set_value(&mut self, key: String, value: SetValue) -> () {
+    fn set_value(&mut self, key: String, value: SetValue) {
         let value_string: String = match value {
             SetValue::String(value) => value,
             SetValue::Float(value) => value.to_string(),
@@ -39,19 +45,22 @@ impl CacheTrait for CacheRedis {
 
         self.connection.set::<String, String, String>(key, value_string).unwrap();
     }
+
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::global::get_redis_client;
+    use crate::memory_client::redis_client::RedisClient;
     use super::*;
 
     fn clear_redis() {
-        let mut connection = RedisClient::get_connection().unwrap();
+        let mut connection = get_redis_client().get_connection().unwrap();
         redis::cmd("FLUSHDB").query(&mut connection).unwrap()
     }
 
     fn set_redis_value(key: String, value: String) {
-        let mut connection = RedisClient::get_connection().unwrap();
+        let mut connection = get_redis_client().get_connection().unwrap();
         redis::cmd("SET").arg(key).arg(value).query(&mut connection).unwrap()
     }
 
@@ -64,19 +73,10 @@ mod tests {
     }
 
     #[test]
-    fn create_redis_connection() {
-        setup();
-
-        let redis_result = RedisClient::get_connection();
-
-        assert_eq!(true, redis_result.is_ok());
-    }
-
-    #[test]
     fn cache_redis_set_string_value() {
         setup();
 
-        let mut cache_redis = CacheRedis::new(RedisClient::get_connection().unwrap());
+        let mut cache_redis = CacheRedis::new_with_connection(get_redis_client().get_connection().unwrap());
         let key = String::from("some-key-1");
         let value = String::from("value");
 
@@ -93,7 +93,7 @@ mod tests {
     fn cache_redis_set_float_value() {
         setup();
 
-        let mut cache_redis = CacheRedis::new(RedisClient::get_connection().unwrap());
+        let mut cache_redis = CacheRedis::new_with_connection(get_redis_client().get_connection().unwrap());
         let key = String::from("some-key-1");
         let value: f64 = 11.5;
 
@@ -110,7 +110,7 @@ mod tests {
     fn cache_redis_set_int_value() {
         setup();
 
-        let mut cache_redis = CacheRedis::new(RedisClient::get_connection().unwrap());
+        let mut cache_redis = CacheRedis::new_with_connection(get_redis_client().get_connection().unwrap());
         let key = String::from("some-key-1");
         let value: i32 = 11;
 
@@ -127,7 +127,7 @@ mod tests {
     fn cache_redis_get_value_exists() {
         setup();
 
-        let mut cache_redis = CacheRedis::new(RedisClient::get_connection().unwrap());
+        let mut cache_redis = CacheRedis::new_with_connection(get_redis_client().get_connection().unwrap());
         let key = String::from("some-key-2");
         let value = String::from("aaa");
 
@@ -140,7 +140,7 @@ mod tests {
     fn cache_redis_get_value_not_exists() {
         setup();
 
-        let mut cache_redis = CacheRedis::new(RedisClient::get_connection().unwrap());
+        let mut cache_redis = CacheRedis::new_with_connection(get_redis_client().get_connection().unwrap());
         let key = String::from("some-key-3");
 
         assert_eq!(None, cache_redis.get_value(key));

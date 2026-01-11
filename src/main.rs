@@ -1,5 +1,6 @@
 //#![cfg_attr(feature = "local", allow(dead_code, unused))]
 #![allow(dead_code, unused)]
+pub mod cache;
 mod memory_client;
 mod env_load;
 mod global;

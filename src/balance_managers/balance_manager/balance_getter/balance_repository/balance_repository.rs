@@ -2,11 +2,9 @@ use std::fmt::Debug;
 use std::sync::Arc;
 use sqlx::{AnyPool, MySqlPool, Pool};
 use crate::entities::balance::{Balance, BalanceType};
-use crate::global::{get_redis_client, get_sql_pool};
-use async_trait::async_trait;
+use crate::global::{get_redis_client, get_sql_pool, get_sql_pool_sync};
 
-#[async_trait]
-pub trait BalanceRepositoryTrait: Send + Sync + Debug {
+pub trait BalanceRepositoryTrait {
     async fn get_balance(
         &self,
         balance_type: BalanceType,
@@ -14,12 +12,24 @@ pub trait BalanceRepositoryTrait: Send + Sync + Debug {
     ) -> Balance;
 }
 
-#[derive(Debug)]
 pub struct BalanceRepository<'mys> {
-    pub sql_pool: &'mys MySqlPool
+    sql_pool: &'mys MySqlPool
 }
 
-#[async_trait]
+impl<'mys> BalanceRepository<'mys> {
+    pub fn new() -> Self {
+        Self {
+            sql_pool: get_sql_pool_sync()
+        }
+    }
+
+    pub fn new_for_tests(pool: &'mys MySqlPool) -> Self {
+        Self {
+            sql_pool: pool
+        }
+    }
+}
+
 impl BalanceRepositoryTrait for BalanceRepository<'_> {
     async fn get_balance(
         &self,
@@ -38,8 +48,8 @@ impl BalanceRepositoryTrait for BalanceRepository<'_> {
             }
             None => {
                 sqlx::query_as::<_, Balance>(
-                        "SELECT * FROM balances WHERE type = ? AND user_bonus_id is null"
-                    )
+                    "SELECT * FROM balances WHERE type = ? AND user_bonus_id is null"
+                )
                     .bind(&balance_type)
                     .fetch_one(self.sql_pool)
                     .await
@@ -52,8 +62,8 @@ impl BalanceRepositoryTrait for BalanceRepository<'_> {
             },
             Err(e) => {
                 let balance_insert_result = sqlx::query(
-                        "INSERT INTO balances (type, user_bonus_id) VALUES (?, ?)"
-                    )
+                    "INSERT INTO balances (type, user_bonus_id) VALUES (?, ?)"
+                )
                     .bind(&balance_type)
                     .bind(&user_bonus_id)
                     .execute(self.sql_pool)
@@ -96,12 +106,10 @@ mod tests {
             .await;
         // Prepare database END
 
-        let balance_repository = BalanceRepository {
-            sql_pool: &sql_pool
-        };
+        let balance_repository = BalanceRepository::new_for_tests(&sql_pool);
         let balance = balance_repository.get_balance(balance_type, user_bonus_id).await;
 
-        assert_eq!(true, balance.id > 0);
+        assert_eq!(true, balance.get_id() > 0);
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
@@ -128,11 +136,10 @@ mod tests {
             .await;
         // Prepare database END
 
-        let balance_repository = BalanceRepository {
-            sql_pool: &sql_pool
-        };
+
+        let balance_repository = BalanceRepository::new_for_tests(&sql_pool);
         let balance = balance_repository.get_balance(balance_type, user_bonus_id).await;
 
-        assert_eq!(true, balance.id > 0);
+        assert_eq!(true, balance.get_id() > 0);
     }
 }
