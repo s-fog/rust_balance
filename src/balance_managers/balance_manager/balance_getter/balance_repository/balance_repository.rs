@@ -1,5 +1,3 @@
-use std::fmt::Debug;
-use std::sync::Arc;
 use sqlx::MySqlPool;
 use crate::entities::balance::{Balance, BalanceType};
 use crate::global::get_sql_pool_sync;
@@ -60,7 +58,7 @@ impl BalanceRepositoryTrait for BalanceRepository<'_> {
             Ok(balance) => {
                 balance
             },
-            Err(e) => {
+            Err(_e) => {
                 let balance_insert_result = sqlx::query(
                     "INSERT INTO balances (type, user_bonus_id) VALUES (?, ?)"
                 )

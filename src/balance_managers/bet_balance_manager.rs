@@ -42,7 +42,7 @@ impl BetBalanceManager {
 
         balance_manager = balance_manager.decrement_regular_balance(&money);
 
-        if (!self.is_game_crash) {
+        if !self.is_game_crash {
             balance_manager = balance_manager.decrement_regular_wager_balance(&money);
         }
 

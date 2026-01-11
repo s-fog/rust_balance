@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use super::balance_cache::balance_cache::{
     BalanceCacheTrait,
     BalanceCache,
@@ -11,16 +10,10 @@ use crate::entities::balance::{
     Balance,
     BalanceType,
 };
-use crate::state::AppState;
-use crate::cache::cache::{
-    CacheRedis,
-    SetValue,
-};
-use crate::global::get_redis_client;
 
 pub trait BalanceGetter {
     async fn get_balance(
-        &self,
+        &mut self,
         balance_type: BalanceType,
         user_bonus_id: Option<u64>,
     ) -> Balance;
@@ -43,7 +36,7 @@ impl BalanceGetterService<BalanceCache, BalanceRepository<'_>> {
 
 impl<C: BalanceCacheTrait, R: BalanceRepositoryTrait> BalanceGetter for BalanceGetterService<C, R> {
     async fn get_balance(
-        &self,
+        &mut self,
         balance_type: BalanceType,
         user_bonus_id: Option<u64>,
     ) -> Balance {
@@ -52,7 +45,7 @@ impl<C: BalanceCacheTrait, R: BalanceRepositoryTrait> BalanceGetter for BalanceG
             &user_bonus_id,
         );
 
-        if (balance_from_cache.is_some()) {
+        if balance_from_cache.is_some() {
             return balance_from_cache.unwrap();
         }
 

@@ -1,11 +1,9 @@
 use std::sync::Arc;
 use axum::{
-    response::{ Json as JsonResponse },
     extract::{ Json as JsonExtract }
 };
 use axum::extract::State;
 use serde::{Serialize, Deserialize };
-use serde_json::{ Value, json };
 use crate::balance_managers::bet_balance_manager::BetBalanceManager;
 use crate::money::money::{Currency, Money};
 use crate::state::AppState;

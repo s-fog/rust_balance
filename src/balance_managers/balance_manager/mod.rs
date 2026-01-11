@@ -4,7 +4,6 @@ mod balance_and_amount;
 
 pub mod balance_manager {
     use std::sync::Arc;
-    use serde::{Deserialize, Serialize };
     use super::balance_getter::balance_getter::{BalanceGetter, BalanceGetterService};
     use super::balance_parts::BalanceParts;
     use crate::entities::balance::{Balance, BalanceType};
@@ -78,11 +77,11 @@ pub mod balance_manager {
             &self,
         ) -> BalanceManagerCommitResponse
         {
-            if (self.balance_parts_changes.is_empty() == false) {
+            if self.balance_parts_changes.is_empty() {
                 return BalanceManagerCommitResponse::make_empty();
             }
 
-            let balance_getter = BalanceGetterService::new();
+            let mut balance_getter = BalanceGetterService::new();
 
             let balance: Balance = balance_getter.get_balance(
                 BalanceType::Regular,

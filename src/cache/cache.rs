@@ -51,7 +51,6 @@ impl CacheTrait for CacheRedis {
 #[cfg(test)]
 mod tests {
     use crate::global::get_redis_client;
-    use crate::memory_client::redis_client::RedisClient;
     use super::*;
 
     fn clear_redis() {
@@ -65,10 +64,6 @@ mod tests {
     }
 
     fn setup() {
-        clear_redis();
-    }
-
-    fn teardown() {
         clear_redis();
     }
 

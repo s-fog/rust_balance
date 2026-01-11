@@ -1,16 +1,15 @@
 use crate::cache::cache::{CacheTrait, CacheRedis, SetValue};
 use crate::entities::balance::{Balance, BalanceType};
-use crate::global::get_redis_client;
 
 pub trait BalanceCacheTrait {
     fn get_balance_from_cache(
-        &self,
+        &mut self,
         balance_type: &BalanceType,
         user_bonus_id: &Option<u64>,
     ) -> Option<Balance>;
 
     fn save_balance_to_cache(
-        &self,
+        &mut self,
         balance: &Balance,
     ) -> ();
 
@@ -27,7 +26,7 @@ pub struct BalanceCache {
 
 impl BalanceCacheTrait for BalanceCache {
     fn get_balance_from_cache(
-        &self,
+        &mut self,
         balance_type: &BalanceType,
         user_bonus_id: &Option<u64>,
     ) -> Option<Balance>
@@ -37,9 +36,9 @@ impl BalanceCacheTrait for BalanceCache {
             &user_bonus_id,
         );
 
-        let balance_serialized = CacheRedis::new().get_value(cache_key);
+        let balance_serialized = self.cache_client.get_value(cache_key);
 
-        if (balance_serialized.is_none()) {
+        if balance_serialized.is_none() {
             return None;
         }
 
@@ -52,7 +51,7 @@ impl BalanceCacheTrait for BalanceCache {
     }
 
     fn save_balance_to_cache(
-        &self,
+        &mut self,
         balance: &Balance,
     )
     {
@@ -61,9 +60,7 @@ impl BalanceCacheTrait for BalanceCache {
             &balance.get_user_bonus_id(),
         );
 
-        let mut s = CacheRedis::new();
-
-            s.set_value(
+        self.cache_client.set_value(
                 cache_key,
                 SetValue::String(serde_json::to_string(&balance).unwrap()),
             );

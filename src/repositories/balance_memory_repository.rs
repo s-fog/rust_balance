@@ -95,7 +95,7 @@ mod tests {
         // Clean values before test
         redis_client.remove_value(balance_memory_repository.get_cache_key(&user_id, &balance_id, &currency));
 
-        let new_balance_amount2: f64 = balance_memory_repository.increment_balance_amount(&user_id, &balance_id, &initial_money);
+        balance_memory_repository.increment_balance_amount(&user_id, &balance_id, &initial_money);
         let new_balance_amount: f64 = balance_memory_repository.increment_balance_amount(&user_id, &balance_id, &money);
 
         assert_eq!(initial_amount + increment_amount_to, new_balance_amount);
