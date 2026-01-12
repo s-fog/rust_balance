@@ -3,7 +3,6 @@ mod balance_parts;
 mod balance_and_amount;
 
 pub mod balance_manager {
-    use std::sync::Arc;
     use super::balance_getter::balance_getter::{BalanceGetter, BalanceGetterService};
     use super::balance_parts::BalanceParts;
     use crate::entities::balance::{Balance, BalanceType};
@@ -27,33 +26,37 @@ pub mod balance_manager {
         }
     }
 
-    #[derive(Debug)]
     pub struct BalanceManager {
-        pub app_state: Arc<AppState>,
-        pub user_id: u64,
-        pub active_user_bonus_id: Option<u64>,
-        pub changing_user_bonus_id: Option<u64>,
-        pub balance_parts_before: BalanceParts,
-        pub balance_parts_after: BalanceParts,
-        pub balance_parts_changes: BalanceParts,
+        user_id: u64,
+        active_user_bonus_id: Option<u64>,
+        changing_user_bonus_id: Option<u64>,
+        balance_parts_before: BalanceParts,
+        balance_parts_after: BalanceParts,
+        balance_parts_changes: BalanceParts,
+        balance_getter_service: Box<dyn BalanceGetter + Send + Sync>
     }
 
     impl BalanceManager {
         pub fn new(
-            app_state: Arc<AppState>,
             user_id: u64,
             active_user_bonus_id: Option<u64>,
             changing_user_bonus_id: Option<u64>,
+            balance_getter_service: Option<Box<dyn BalanceGetter + Send + Sync>>,
         ) -> Self
         {
+            let bgs = match balance_getter_service {
+                None => Box::new(BalanceGetterService::new()),
+                Some(bgs) => bgs,
+            };
+
             Self {
-                app_state,
                 user_id,
                 active_user_bonus_id,
                 changing_user_bonus_id,
                 balance_parts_before: BalanceParts::empty(),
                 balance_parts_after: BalanceParts::empty(),
                 balance_parts_changes: BalanceParts::empty(),
+                balance_getter_service: bgs
             }
         }
 

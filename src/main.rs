@@ -12,7 +12,12 @@ mod balance_managers;
 mod handlers;
 
 use std::sync::Arc;
-use axum::{ Router, routing::post };
+use axum::{
+    extract::Json,
+    routing::post,
+    handler::Handler,
+    Router,
+};
 use crate::global::init_sql_pool;
 use crate::handlers::bet_only_regular_handler::bet_only_regular_handler;
 use crate::balance_managers::bet_balance_manager::BetBalanceManager;
@@ -48,7 +53,6 @@ enum Command {
 #[tokio::main]
 async fn main() {
     init_sql_pool().await;
-    let app_state = Arc::new(AppState::make_real());
 
     let cli = Cli::parse();
 
@@ -56,7 +60,7 @@ async fn main() {
 
     match cli.command {
         Command::Http { port } => {
-            start_http_server(app_state).await;
+            start_http_server()
         },
         Command::BetOnlyRegular {
             user_id,
@@ -65,7 +69,6 @@ async fn main() {
             currency_code ,
         } => {
             let bet_balance_manager = BetBalanceManager::new(
-                app_state,
                 user_id,
                 false,
                 None,
@@ -81,13 +84,13 @@ async fn main() {
     }
 }
 
-async fn start_http_server(app_state: Arc<AppState>) {
+#[tokio::main]
+async fn start_http_server() {
     let app = Router::new()
         .route(
             "/bet/only-regular",
             post(bet_only_regular_handler),
-        )
-        .with_state(app_state);
+        );
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();

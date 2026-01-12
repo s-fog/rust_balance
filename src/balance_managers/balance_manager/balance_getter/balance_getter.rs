@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use super::balance_cache::balance_cache::{
     BalanceCacheTrait,
     BalanceCache,
@@ -11,35 +12,38 @@ use crate::entities::balance::{
     BalanceType,
 };
 
+#[async_trait::async_trait]
 pub trait BalanceGetter {
     async fn get_balance(
-        &mut self,
+        &self,
         balance_type: BalanceType,
         user_bonus_id: Option<u64>,
     ) -> Balance;
 }
 
-pub struct BalanceGetterService<BalanceCacheTrait, BalanceRepositoryTrait> {
-    balance_repository: BalanceRepositoryTrait,
-    balance_cache: BalanceCacheTrait,
+pub struct BalanceGetterService {
+    balance_repository: Arc<dyn BalanceRepositoryTrait>,
+    balance_cache: Arc<dyn BalanceCacheTrait>,
 }
 
-impl BalanceGetterService<BalanceCache, BalanceRepository<'_>> {
+impl BalanceGetterService {
     pub fn new() -> Self
     {
         Self {
-            balance_repository: BalanceRepository::new(),
-            balance_cache: BalanceCache::new(),
+            balance_repository: Arc::new(BalanceRepository::new()),
+            balance_cache: Arc::new(BalanceCache::new()),
         }
     }
 }
 
-impl<C: BalanceCacheTrait, R: BalanceRepositoryTrait> BalanceGetter for BalanceGetterService<C, R> {
+#[async_trait::async_trait]
+impl BalanceGetter for BalanceGetterService {
     async fn get_balance(
-        &mut self,
+        &self,
         balance_type: BalanceType,
         user_bonus_id: Option<u64>,
-    ) -> Balance {
+    ) -> Balance
+    {
         let balance_from_cache: Option<Balance> = self.balance_cache.get_balance_from_cache(
             &balance_type,
             &user_bonus_id,
@@ -54,7 +58,7 @@ impl<C: BalanceCacheTrait, R: BalanceRepositoryTrait> BalanceGetter for BalanceG
             user_bonus_id,
         ).await;
 
-        self.balance_cache.save_balance_to_cache(&balance, );
+        self.balance_cache.save_balance_to_cache(&balance);
 
         balance
     }
